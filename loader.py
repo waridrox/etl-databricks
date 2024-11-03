@@ -19,3 +19,23 @@ class AirPodsAfterIphoneLoader(AbstractLoader):
             method = "overwrite"
         ).load_data_frame()
 
+class OnlyAirpodsAndIPhoneLoader(AbstractLoader):
+
+    def sink(self):
+        params = {
+            "partitionByColumns": ["location"]
+        }
+        get_sink_source(
+            sink_type = "dbfs_with_partition",
+            df = self.transformedDF, 
+            path = "dbfs:/FileStore/tables/apple_analysis/output/airpodsOnlyIphone", 
+            method = "overwrite",
+            params = params
+        ).load_data_frame()
+
+        get_sink_source(
+            sink_type = "delta",
+            df = self.transformedDF, 
+            path = "default.onlyAirPodsAndIphone", 
+            method = "overwrite",
+        ).load_data_frame()   
