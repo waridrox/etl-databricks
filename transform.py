@@ -55,3 +55,49 @@ class AirpodsAfterIphoneTransformer(Transformer):
             "location"
         )
 
+
+class OnlyAirpodsAndIphone(Transformer):
+
+    def transform(self, inputDFs):
+        """
+        Customer who have bought only iPhone and Airpods nothing else
+        """
+
+        transcatioInputDF = inputDFs.get("transcatioInputDF")
+
+        print("transcatioInputDF in transform")
+
+        groupedDF = transcatioInputDF.groupBy("customer_id").agg(
+            collect_set("product_name").alias("products")
+        )
+
+        print("Grouped DF")
+        groupedDF.show()
+
+        filteredDF = groupedDF.filter(
+            (array_contains(col("products"), "iPhone")) &
+            (array_contains(col("products"), "AirPods")) & 
+            (size(col("products")) == 2)
+        )
+        
+        print("Only Airpods and iPhone")
+        filteredDF.show()
+
+        customerInputDF = inputDFs.get("customerInputDF")
+
+        customerInputDF.show()
+
+        joinDF =  customerInputDF.join(
+           broadcast(filteredDF),
+            "customer_id"
+        )
+
+        print("JOINED DF")
+        joinDF.show()
+
+        return joinDF.select(
+            "customer_id",
+            "customer_name",
+            "location"
+        )
+
